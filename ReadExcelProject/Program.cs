@@ -21,21 +21,22 @@ namespace ReadExcelProject
     {        
         private const string _baseUrl = "https://octo.quickbase.com/db/";
         private const string _username = "rahulmisra2000@gmail.com";
-        private const string _password = "123exceltoquickbase";
+        private const string _password = "";                            // Hidden because of github
         private const string _appToken = "bwy3haxdh8fsi7v6p6k7dyexycn";
         private string _authTicket;
 
         private string _fileName = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) + @"\1.xlsx";
         private const string _tableId = "bkr5uxfek";
 
-        private Stopwatch _stopWatch = new Stopwatch();    
         private DataTable dt = null;
-        private string _finalMessage="";
-        private const int FAIL = 100;
-        private const int PASS = 101;        
+
+        private Stopwatch _stopWatch = new Stopwatch();            
+        private List<string> _msgList = new List<string>();
+        private const int FAIL = 9000;
+        private const int PASS = 9001;
         
         private const string _fromEmail = "ExcelToQuickBase@gmail.com"; // In gmail enable allow less secure apps
-        private const string _fromPwd = "";                             // hidden because going to github
+        private const string _fromPwd = "";                             // Hidden because of github
         private const string _toEmail = "rahulmisra2000@gmail.com";
 
         private enum AppFeatures
@@ -51,8 +52,7 @@ namespace ReadExcelProject
         }
 
         private AppFeatures _enabledFeatures;
-
-
+        
         static void Main(string[] args)
         {            
             new Program().Run();                
@@ -66,11 +66,11 @@ namespace ReadExcelProject
             EndHouseKeeping();                  
         }
 
-        private void WriteToConsole(string v, bool wait=false)
+        private void WriteToConsole(List<string> ls, bool wait=false)
         {
             if ((_enabledFeatures & AppFeatures.ConsoleOutput)== AppFeatures.ConsoleOutput)
             {
-                Console.WriteLine(DateTime.Now + " : " + v);                
+                foreach (var s in ls) { Console.WriteLine(DateTime.Now + ": " + s); }                
             }
 
             if (wait) {
@@ -81,10 +81,10 @@ namespace ReadExcelProject
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            _finalMessage = e.ExceptionObject.ToString();
+            _msgList.Add(e.ExceptionObject.ToString());
             LogToEventViewer(FAIL);
             WriteToLogFile();
-            WriteToConsole("Severe Error: Check Event Viewer. Hit <Enter> to continue...",true);            
+            WriteToConsole(new List<string> {"Severe Error: Check Event Viewer. Hit <Enter> to continue..."},true);            
             Environment.Exit(1);
         }
 
@@ -95,14 +95,13 @@ namespace ReadExcelProject
                 using (EventLog eventLog = new EventLog("Application"))
                 {
                     eventLog.Source = "Application";
-                    eventLog.WriteEntry(DateTime.Now + " : " + _finalMessage, 
+                    eventLog.WriteEntry(DateTime.Now + " : " + String.Join("\r\n",_msgList), 
                                         id == FAIL ? EventLogEntryType.Error : EventLogEntryType.Information, 
                                         id, 
                                         1);
                 }
             }
         }
-        
 
         private void WriteToLogFile()
         {
@@ -110,22 +109,22 @@ namespace ReadExcelProject
             {
                 using (StreamWriter sw = File.AppendText("Log.txt"))
                 {
-                    sw.WriteLine(DateTime.Now + " : " + _finalMessage);
+                    sw.WriteLine(DateTime.Now + " : " + String.Join("\r\n",_msgList));
                 }
             }
         }
 
         private void ProcessWorkFlow()
         {                                    
-            if (!SuccessfullAuthenticated()) { _finalMessage="Failed Authentication"; return; }
-            if (!SuccessfullyHydratedDataTable()) { _finalMessage = "Failed To Read Excel"; return; }
+            if (!SuccessfullAuthenticated()) { _msgList.Add(string.Format("Failed Authentication for {0}",_username)); return; }
+            if (!SuccessfullyHydratedDataTable()) { _msgList.Add(string.Format("Failed To Read Excel {0}",_fileName)); return; }
             WriteDataTableToScreen();
-            if (!SuccessfullyWrittenToQuickBase()) { _finalMessage = "Failed To Write to QuickBase"; return; }
+            if (!SuccessfullyWrittenToQuickBase()) { _msgList.Add(string.Format("Failed To Write to QuickBase TableID {0}",_tableId)); return; }
             // All OK
             _stopWatch.Stop();
             TimeSpan ts = _stopWatch.Elapsed;
-            _finalMessage = String.Format("Successfully wrote {0} Records In {1:00}:{2:00}:{3:00}.{4:00}",
-                                            dt.Rows.Count, ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            _msgList.Add(String.Format("Successfully wrote {0} Records In {1:00}:{2:00}:{3:00}.{4:00}",
+                                            dt.Rows.Count, ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10));
         }
 
         private void BeginHouseKeeping()
@@ -135,16 +134,16 @@ namespace ReadExcelProject
                                 AppFeatures.ConsoleOutput | 
                                 AppFeatures.WriteToLogFile;
 
-            WriteToConsole("Working ...");
+            WriteToConsole(new List<string> {"Run started ..." });
             _stopWatch.Start();
         }
 
         private void EndHouseKeeping()
         {            
             WriteToLogFile();
-            SendEmail();
-            LogToEventViewer(_finalMessage.Contains("Failed") ? FAIL : PASS);
-            WriteToConsole(_finalMessage,true);
+            SendEmail();            
+            LogToEventViewer(_msgList.Where(m=>m.ToLower().Contains("failed")).Count()>0 ? FAIL : PASS);
+            WriteToConsole(_msgList,true);
         }
 
         /// <summary>
@@ -159,13 +158,19 @@ namespace ReadExcelProject
                     Credentials = new NetworkCredential(_fromEmail, _fromPwd),
                     EnableSsl = true
                 };
-                client.Send(_fromEmail, _toEmail, "Notification: Excel to QuickBase", DateTime.Now + " : " + _finalMessage);
+                client.Send(_fromEmail, _toEmail, "Notification: Excel to QuickBase", DateTime.Now + " : " + String.Join("\r\n",_msgList));
             }
         }
 
+        private bool SuccessfullAuthenticated()
+        {
+            string result = CallApiParams(_baseUrl + "main", "API_Authenticate", null, null, "username", _username, "password", _password, "hours", 24);
+            return !ParseResult(result, "ticket", out _authTicket);            
+        }
+
+
         private bool SuccessfullyWrittenToQuickBase()
         {
-
             StringBuilder sb = new StringBuilder();
             foreach (DataRow r in dt.Rows)
             {
@@ -174,7 +179,7 @@ namespace ReadExcelProject
             string csv_values = @"<![CDATA[" +
                                     sb.ToString() +
                                     @"]]>";
-            if ((_enabledFeatures & AppFeatures.HttpPostPayload) == AppFeatures.HttpPostPayload) { WriteToConsole(csv_values); }
+            if ((_enabledFeatures & AppFeatures.HttpPostPayload) == AppFeatures.HttpPostPayload) { WriteToConsole( new List<string> { csv_values }); }
                 
             string clist = "6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23.24.25.26.27.28.29.30.31.32.33.34.35.36.37";
 
@@ -187,16 +192,7 @@ namespace ReadExcelProject
             ParseResult(result, "errcode", out errcode);
             return (Convert.ToInt32(errcode) == 0);
         }
-
-        private bool SuccessfullAuthenticated()
-        {            
-            string result = CallApiParams(_baseUrl + "main", "API_Authenticate", null, null,"username", _username,"password", _password, "hours", 24);
-
-            if (ParseResult(result, "ticket", out _authTicket))  { return false; }
-            return true;            
-        }
-
-
+        
         private string CallApiParams(string url, string quickbase_action, string ticket, string appToken, params object[] name_value)
         {
             string values = "";
@@ -209,7 +205,7 @@ namespace ReadExcelProject
 
         private string CallApi(string url, string quickbase_action, string ticket, string appToken, string values)
         {
-            WriteToConsole(string.Format("Step - {0} @ {1}",quickbase_action,url));
+            WriteToConsole(new List<string> { string.Format("Step - {0} @ {1}", quickbase_action, url) });
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
             request.Method = "POST";
             request.ContentType = "application/xml";
@@ -230,14 +226,12 @@ namespace ReadExcelProject
                 return reader.ReadToEnd();
         }
 
-
         private bool ParseResult(string result, string tag, out string data)
         {
             Match match = Regex.Match(result, @"<" + tag + @">([^\s<>]+)</" + tag + @">", RegexOptions.IgnoreCase);
             data = match.Success ? match.Groups[1].Value : "";
             return !match.Success;
         }
-
 
         private void WriteDataTableToScreen()
         {
@@ -251,7 +245,7 @@ namespace ReadExcelProject
                 string csv_values = @"<![CDATA[" +
                                         sb.ToString() +
                                         @"]]>";
-                Console.WriteLine(csv_values);
+                WriteToConsole(new List<string> { csv_values });                
             }
         }
 
@@ -272,9 +266,7 @@ namespace ReadExcelProject
             }
             catch (Exception ex)
             {
-                _finalMessage = ex.Message;
-                WriteToConsole(DateTime.Now + " : " + "Reading of Excel failed. "  + ex.Message);
-                LogToEventViewer(FAIL);
+                _msgList.Add(ex.Message);
                 return false;
             }
             return true;
@@ -297,7 +289,7 @@ namespace ReadExcelProject
             for (int rowNum = startRow; rowNum <= totalRows; rowNum++)
             {
                 if (rowNum % 100 == 0) {
-                    WriteToConsole(string.Format("Step - {0} of {1} Records From Excel Processed", rowNum, totalRows));
+                    WriteToConsole(new List<string> { string.Format("Step - {0} of {1} Records From Excel Processed", rowNum, totalRows) });
                 }
                 wsRow = ws.Cells[rowNum, 1, rowNum, totalCols];
                 dr = dt.NewRow();
@@ -308,7 +300,7 @@ namespace ReadExcelProject
 
                 dt.Rows.Add(dr);
             }
-            WriteToConsole(string.Format("Step - {0} of {1} Records From Excel Processed", totalRows, totalRows));
+            WriteToConsole(new List<string> { string.Format("Step - {0} of {1} Records From Excel Processed", totalRows, totalRows) });
             return dt;
         }
     }
