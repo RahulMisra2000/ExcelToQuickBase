@@ -23,7 +23,7 @@ namespace ReadExcelProject
         private const string _password = "123exceltoquickbase";
         private const string _appToken = "bwy3haxdh8fsi7v6p6k7dyexycn";
         private string _authTicket;
-        private const string _fileName = "1.xlsx";
+        private string _fileName = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) + @"\1.xlsx";
         private const string _tableId = "bkr5uxfek";
         private Stopwatch _stopWatch = new Stopwatch();    
         private DataTable dt = null;
