@@ -190,7 +190,9 @@ namespace ReadExcelProject
                                     sb.ToString() +
                                     @"]]>";
             if ((_enabledFeatures & AppFeatures.HttpPostPayload) == AppFeatures.HttpPostPayload) { WriteToConsole( new List<string> { csv_values }); }
-                
+            
+            
+            // When you are adding records to quickbase, clist is optional....So, if I comment it out, it still works    
             string clist = "6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23.24.25.26.27.28.29.30.31.32.33.34.35.36.37";
 
             string result = CallApiParams(_baseUrl + _tableId, "API_ImportFromCSV", _authTicket, _appToken,
