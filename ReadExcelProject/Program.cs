@@ -68,14 +68,15 @@ namespace ReadExcelProject
 
         private void WriteToConsole(List<string> ls, bool wait=false)
         {
-            if ((_enabledFeatures & AppFeatures.ConsoleOutput)== AppFeatures.ConsoleOutput)
+            if ((_enabledFeatures & AppFeatures.ConsoleOutput) == AppFeatures.ConsoleOutput)
             {
-                foreach (var s in ls) { Console.WriteLine(DateTime.Now + ": " + s); }                
-            }
+                foreach (var s in ls) { Console.WriteLine(DateTime.Now + ": " + s); }
 
-            if (wait) {
-                Console.WriteLine(DateTime.Now + " : Hit <Enter> to continue");
-                Console.ReadLine();
+                if (wait)
+                {
+                    Console.WriteLine(DateTime.Now + " : Hit <Enter> to continue");
+                    Console.ReadLine();
+                }
             }
         }
 
@@ -131,9 +132,8 @@ namespace ReadExcelProject
         {
             _enabledFeatures =  AppFeatures.SendEmail | 
                                 AppFeatures.EventViewer | 
-                                AppFeatures.ConsoleOutput | 
-                                AppFeatures.WriteToLogFile |
-                                AppFeatures.WriteDTtoScreen;
+                                //AppFeatures.ConsoleOutput | 
+                                AppFeatures.WriteToLogFile;
 
             WriteToConsole(new List<string> {"Run started ..." });
             _stopWatch.Start();

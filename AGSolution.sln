@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadExcelProject", "ReadExcelProject\ReadExcelProject.csproj", "{B04889E4-A580-4BC2-B956-206FEE4B86A6}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupProject", "SetupProject\SetupProject.vdproj", "{7CF095CC-31DB-4FD6-ACF2-EE521E27A160}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupProject", "SetupProject\SetupProject.vdproj", "{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,9 @@ Global
 		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CF095CC-31DB-4FD6-ACF2-EE521E27A160}.Debug|Any CPU.ActiveCfg = Debug
-		{7CF095CC-31DB-4FD6-ACF2-EE521E27A160}.Debug|Any CPU.Build.0 = Debug
-		{7CF095CC-31DB-4FD6-ACF2-EE521E27A160}.Release|Any CPU.ActiveCfg = Release
-		{7CF095CC-31DB-4FD6-ACF2-EE521E27A160}.Release|Any CPU.Build.0 = Release
+		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Debug|Any CPU.ActiveCfg = Debug
+		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Debug|Any CPU.Build.0 = Debug
+		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
