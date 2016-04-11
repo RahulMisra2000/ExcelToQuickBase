@@ -21,7 +21,7 @@ namespace ReadExcelProject
     {        
         private const string _baseUrl = "https://octo.quickbase.com/db/";
         private const string _username = "rahulmisra2000@gmail.com";
-        private const string _password = "";                            // Hidden because of github
+        private const string _password = "";       // temporary deleted because of github
         private const string _appToken = "bwy3haxdh8fsi7v6p6k7dyexycn";
         private string _authTicket;
 
@@ -36,7 +36,7 @@ namespace ReadExcelProject
         private const int PASS = 9001;
         
         private const string _fromEmail = "ExcelToQuickBase@gmail.com"; // In gmail enable allow less secure apps
-        private const string _fromPwd = "";                             // Hidden because of github
+        private const string _fromPwd = "";          // temporary deleted because of github
         private const string _toEmail = "rahulmisra2000@gmail.com";
 
         private enum AppFeatures
@@ -132,7 +132,8 @@ namespace ReadExcelProject
             _enabledFeatures =  AppFeatures.SendEmail | 
                                 AppFeatures.EventViewer | 
                                 AppFeatures.ConsoleOutput | 
-                                AppFeatures.WriteToLogFile;
+                                AppFeatures.WriteToLogFile |
+                                AppFeatures.WriteDTtoScreen;
 
             WriteToConsole(new List<string> {"Run started ..." });
             _stopWatch.Start();
@@ -295,7 +296,7 @@ namespace ReadExcelProject
                 dr = dt.NewRow();
                 foreach (var cell in wsRow)
                 {
-                    dr[cell.Start.Column - 1] = cell.Text;
+                    dr[cell.Start.Column - 1] = cell.Text.Replace(',',';');
                 }
 
                 dt.Rows.Add(dr);
