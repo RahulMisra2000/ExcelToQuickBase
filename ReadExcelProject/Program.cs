@@ -20,11 +20,11 @@ namespace ReadExcelProject
     class Program
     {        
         private const string _baseUrl = "https://octo.quickbase.com/db/";
-        private const string _username = "rahulmisra2000@gmail.com";
-        private const string _password = "";      
+        private string _username = "rahulmisra2000@gmail.com";
+        private string _password = "";      
         private const string _appToken = "bwy3haxdh8fsi7v6p6k7dyexycn";
         private string _authTicket;
-
+        
         private string _fileName = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) + @"\1.xlsx";
         private const string _tableId = "bkr5uxfek";
 
@@ -37,7 +37,7 @@ namespace ReadExcelProject
         
         private const string _fromEmail = "ExcelToQuickBase@gmail.com"; // In gmail enable allow less secure apps
         private const string _fromPwd = "";        
-        private const string _toEmail = "rahulmisra2000@gmail.com";
+        private string _toEmail = "rahulmisra2000@gmail.com";
 
         private enum AppFeatures
         {
@@ -55,12 +55,12 @@ namespace ReadExcelProject
         
         static void Main(string[] args)
         {            
-            new Program().Run();                
+            new Program().Run(args);                
         }
         
-        private void Run()
+        private void Run(string[] args)
         {
-            BeginHouseKeeping();            
+            BeginHouseKeeping(args);            
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             ProcessWorkFlow();
             EndHouseKeeping();                  
@@ -128,15 +128,25 @@ namespace ReadExcelProject
                                             dt.Rows.Count, ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10));
         }
 
-        private void BeginHouseKeeping()
+        private void BeginHouseKeeping(string[] args)
         {
             _enabledFeatures =  AppFeatures.SendEmail | 
                                 AppFeatures.EventViewer | 
-                                //AppFeatures.ConsoleOutput | 
+                                AppFeatures.ConsoleOutput | 
                                 AppFeatures.WriteToLogFile;
+
+            ProcessCommandLineArguments(args);
 
             WriteToConsole(new List<string> {"Run started ..." });
             _stopWatch.Start();
+        }
+
+        private void ProcessCommandLineArguments(string[] args)
+        {
+            string tmp;
+            if (!string.IsNullOrEmpty(tmp=args.SingleOrDefault(arg => arg.StartsWith("-u:")))) { _username = tmp.Replace("-u:", ""); }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-p:")))) { _password = tmp.Replace("-p:", ""); }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-t:")))) { _toEmail = tmp.Replace("-t:", ""); }
         }
 
         private void EndHouseKeeping()
@@ -168,7 +178,6 @@ namespace ReadExcelProject
             string result = CallApiParams(_baseUrl + "main", "API_Authenticate", null, null, "username", _username, "password", _password, "hours", 24);
             return !ParseResult(result, "ticket", out _authTicket);            
         }
-
 
         private bool SuccessfullyWrittenToQuickBase()
         {
