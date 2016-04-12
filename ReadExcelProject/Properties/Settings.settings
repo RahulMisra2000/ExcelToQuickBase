@@ -11,17 +11,11 @@
     <Setting Name="UserName" Type="System.String" Scope="Application">
       <Value Profile="(Default)">RahulMisra2000@gmail.com</Value>
     </Setting>
-    <Setting Name="Password" Type="System.String" Scope="Application">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="BaseUrl" Type="System.String" Scope="Application">
       <Value Profile="(Default)">https://octo.quickbase.com/db/</Value>
     </Setting>
     <Setting Name="FromEmail" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ExcelToQuickBase@gmail.com</Value>
-    </Setting>
-    <Setting Name="FromPassword" Type="System.String" Scope="Application">
-      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="ToEmail" Type="System.String" Scope="Application">
       <Value Profile="(Default)">rahulmisra2000@gmail.com</Value>

@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ReadExcelProject.Properties" GeneratedClassName="Sensitive">
+  <Profiles />
+  <Settings>
+    <Setting Name="Password" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">123exceltoquickbase</Value>
+    </Setting>
+    <Setting Name="FromPassword" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">123exceltoquickbase!!@@</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

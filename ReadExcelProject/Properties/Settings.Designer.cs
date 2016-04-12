@@ -52,15 +52,6 @@ namespace ReadExcelProject.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Password {
-            get {
-                return ((string)(this["Password"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("https://octo.quickbase.com/db/")]
         public string BaseUrl {
             get {
@@ -74,15 +65,6 @@ namespace ReadExcelProject.Properties {
         public string FromEmail {
             get {
                 return ((string)(this["FromEmail"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string FromPassword {
-            get {
-                return ((string)(this["FromPassword"]));
             }
         }
         

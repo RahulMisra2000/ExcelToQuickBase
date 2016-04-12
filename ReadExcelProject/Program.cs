@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -113,9 +114,15 @@ namespace ReadExcelProject
         {
             if ((_enabledFeatures & AppFeatures.WriteToLogFile) == AppFeatures.WriteToLogFile)
             {
-                using (StreamWriter sw = File.AppendText("Log.txt"))
+                try {
+                    using (StreamWriter sw = File.AppendText("Log.txt"))
+                    {
+                        sw.WriteLine(DateTime.Now + " : " + String.Join("\r\n", _msgList));
+                    }
+                }
+                catch (Exception e)
                 {
-                    sw.WriteLine(DateTime.Now + " : " + String.Join("\r\n",_msgList));
+                    _msgList.Add("ERROR: Cannot write log. Please give user Write permission to the application folder " + e.Message);
                 }
             }
         }
@@ -135,43 +142,128 @@ namespace ReadExcelProject
 
         private void BeginHouseKeeping(string[] args)
         {
-            _enabledFeatures =  AppFeatures.SendEmail | 
-                                AppFeatures.EventViewer | 
-                                AppFeatures.ConsoleOutput | 
-                                AppFeatures.WriteToLogFile;
-            
-            LoadFromSettings();
+            // sp: (S)pecial (P)rocess
+            // This command-line argument is only used by the "Custom Action" called by the Setup Project and is invoked immediately after a successful installation
+            if (!string.IsNullOrEmpty(args.SingleOrDefault(arg => arg.StartsWith("-sp:")))) { EncryptSensitiveSettings(args); Environment.Exit(1); }  // Fast Exit
+
+
+            _enabledFeatures =  
+                                  AppFeatures.SendEmail
+                                | AppFeatures.EventViewer 
+                                | AppFeatures.ConsoleOutput 
+                             // | AppFeatures.WriteToLogFile
+                                ;
+            EncryptSensitiveSettings(args); // Insurance : just in case post-installation custom action did not encrypt the sensitive stuff in .config
+            LoadFrom2SettingsFiles();
             ProcessCommandLineArguments(args);
 
             WriteToConsole(new List<string> {"Run started ..." });
             _stopWatch.Start();
         }
 
-        private void LoadFromSettings()
+        /// <summary>
+        /// Encrypt sensitive settings if they are not already encrypted
+        /// </summary>
+        private void EncryptSensitiveSettings(string[] args)
         {
-            _appToken = Properties.Settings.Default.AppToken;
-            _tableId = Properties.Settings.Default.TableId;
-            _fileName = Properties.Settings.Default.FileName;
-            _username = Properties.Settings.Default.UserName;
-            _password = Properties.Settings.Default.Password;
-            _baseUrl = Properties.Settings.Default.BaseUrl;
-            _fromEmail = Properties.Settings.Default.FromEmail;
-            _fromPwd = Properties.Settings.Default.FromPassword;
-            _toEmail = Properties.Settings.Default.ToEmail;
+            string tmp;
+            string installationFolder = "";
+
+            string baseAssemblyName = Assembly.GetExecutingAssembly().GetName().Name + ".exe";
+
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-if:")))) { installationFolder = tmp.Replace("-if:", ""); }
             
+            string assemblyLocation = Path.Combine(installationFolder, baseAssemblyName);
+            
+            try {
+                Configuration config = ConfigurationManager.OpenExeConfiguration(assemblyLocation);
+                var section = config.GetSectionGroup("applicationSettings").Sections["ReadExcelProject.Properties.Sensitive"];
+
+                if (!section.SectionInformation.IsProtected)
+                {
+                    section.SectionInformation.ProtectSection("DataProtectionConfigurationProvider");
+
+                }
+                //else
+                //{
+                //    // For decrypting
+                //    section.SectionInformation.UnprotectSection();
+                //}
+                config.Save();
+            }
+            catch (Exception e)
+            {
+                _msgList.Add(e.Message);                
+            }
+
+           
         }
 
+        /// <summary>
+        /// For Overriding hard coded settings in source code from settings file
+        /// </summary>
+        private void LoadFrom2SettingsFiles()
+        {
+            string tmp;
+
+            // Sensitive.settings
+            if (!string.IsNullOrEmpty(tmp = Properties.Sensitive.Default.Password))     { _password = tmp; }
+            if (!string.IsNullOrEmpty(tmp = Properties.Sensitive.Default.FromPassword)) { _fromPwd = tmp; }
+
+            // Settings.settings
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.AppToken))      { _appToken = tmp; }
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.TableId))       { _tableId = tmp; }
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.FileName))      { _fileName = tmp; }
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.UserName))      { _username = tmp; }            
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.BaseUrl))       { _baseUrl = tmp; }
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.FromEmail))     { _fromEmail = tmp; }            
+            if (!string.IsNullOrEmpty(tmp = Properties.Settings.Default.ToEmail))       { _toEmail = tmp; }            
+        }
+
+        /// <summary>
+        /// For Overriding settings and features from command-line arguments
+        /// </summary>
+        /// <param name="args"></param>
         private void ProcessCommandLineArguments(string[] args)
         {
             string tmp;
+            // Override Settings
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-b:")))) { _baseUrl = tmp.Replace("-b:", ""); }
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-u:")))) { _username = tmp.Replace("-u:", ""); }
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-p:")))) { _password = tmp.Replace("-p:", ""); }
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-f:")))) { _fileName = tmp.Replace("-f:", ""); }            
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-t:")))) { _tableId = tmp.Replace("-t:", ""); }
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-e:")))) { _toEmail = tmp.Replace("-e:", ""); }
-
             _fqFileName = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) + "\\" + _fileName;
+
+            // Disable Features
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-x:c")))) { 
+               if (_enabledFeatures.HasFlag(AppFeatures.ConsoleOutput))
+                {
+                    _enabledFeatures = _enabledFeatures & ~AppFeatures.ConsoleOutput;
+                }
+            }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-x:l"))))
+            {  
+                if (_enabledFeatures.HasFlag(AppFeatures.WriteToLogFile))
+                {
+                    _enabledFeatures = _enabledFeatures & ~AppFeatures.WriteToLogFile;
+                }
+            }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-x:m"))))
+            {
+                if (_enabledFeatures.HasFlag(AppFeatures.SendEmail))
+                {
+                    _enabledFeatures = _enabledFeatures & ~AppFeatures.SendEmail;
+                }
+            }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-x:e"))))
+            {
+                if (_enabledFeatures.HasFlag(AppFeatures.EventViewer))
+                {
+                    _enabledFeatures = _enabledFeatures & ~AppFeatures.EventViewer;
+                }
+            }
         }
 
         private void EndHouseKeeping()

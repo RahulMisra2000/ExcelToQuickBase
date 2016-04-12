@@ -5,7 +5,9 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadExcelProject", "ReadExcelProject\ReadExcelProject.csproj", "{B04889E4-A580-4BC2-B956-206FEE4B86A6}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupProject", "SetupProject\SetupProject.vdproj", "{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ReadExcelSetupProject", "SetupProject\SetupProject.vdproj", "{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomActionProject", "CustomActionProject\CustomActionProject.csproj", "{20C6522C-0E1B-4AAB-991E-27CADC3914F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +19,15 @@ Global
 		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B04889E4-A580-4BC2-B956-206FEE4B86A6}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Debug|Any CPU.ActiveCfg = Debug
 		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Debug|Any CPU.Build.0 = Debug
 		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Release|Any CPU.ActiveCfg = Release
 		{DFF8AE1C-AEE0-4CBE-AB55-9477E2665580}.Release|Any CPU.Build.0 = Release
+		{20C6522C-0E1B-4AAB-991E-27CADC3914F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C6522C-0E1B-4AAB-991E-27CADC3914F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20C6522C-0E1B-4AAB-991E-27CADC3914F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20C6522C-0E1B-4AAB-991E-27CADC3914F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
