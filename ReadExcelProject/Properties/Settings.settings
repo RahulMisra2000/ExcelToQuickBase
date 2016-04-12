@@ -1,0 +1,33 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ReadExcelProject.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="AppToken" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">bwy3haxdh8fsi7v6p6k7dyexycn</Value>
+    </Setting>
+    <Setting Name="TableId" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">bkr5uxfek</Value>
+    </Setting>
+    <Setting Name="UserName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">RahulMisra2000@gmail.com</Value>
+    </Setting>
+    <Setting Name="Password" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="BaseUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://octo.quickbase.com/db/</Value>
+    </Setting>
+    <Setting Name="FromEmail" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ExcelToQuickBase@gmail.com</Value>
+    </Setting>
+    <Setting Name="FromPassword" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ToEmail" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">rahulmisra2000@gmail.com</Value>
+    </Setting>
+    <Setting Name="FileName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">1.xlsx</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

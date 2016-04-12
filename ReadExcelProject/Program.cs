@@ -1,6 +1,7 @@
 ﻿using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.OleDb;
 using System.Diagnostics;
@@ -15,18 +16,22 @@ using System.Threading;
 namespace ReadExcelProject
 {
     /// <summary>
-    /// // Requires EEPlus Nuget Package 
+    /// Requires EEPlus Nuget Package 
+    /// Install this application in a folder where you have both read (Because we read Excel) and write permission (we are writing out log.txt)
     /// </summary>
     class Program
     {        
-        private const string _baseUrl = "https://octo.quickbase.com/db/";
+
+        // Order of precedence -- Values in instance variable - Values from Settings -- Values from command-line arguments
+        private string _baseUrl = "https://octo.quickbase.com/db/";
         private string _username = "rahulmisra2000@gmail.com";
         private string _password = "";      
-        private const string _appToken = "bwy3haxdh8fsi7v6p6k7dyexycn";
+        private string _appToken = "bwy3haxdh8fsi7v6p6k7dyexycn";
         private string _authTicket;
-        
-        private string _fileName = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) + @"\1.xlsx";
-        private const string _tableId = "bkr5uxfek";
+
+        private string _fileName = "1.xlsx";
+        private string _fqFileName;
+        private string _tableId = "bkr5uxfek";
 
         private DataTable dt = null;
 
@@ -35,8 +40,8 @@ namespace ReadExcelProject
         private const int FAIL = 9000;
         private const int PASS = 9001;
         
-        private const string _fromEmail = "ExcelToQuickBase@gmail.com"; // In gmail enable allow less secure apps
-        private const string _fromPwd = "";        
+        private string _fromEmail = "ExcelToQuickBase@gmail.com"; // In gmail enable allow less secure apps
+        private string _fromPwd = "";        
         private string _toEmail = "rahulmisra2000@gmail.com";
 
         private enum AppFeatures
@@ -118,7 +123,7 @@ namespace ReadExcelProject
         private void ProcessWorkFlow()
         {                                    
             if (!SuccessfullAuthenticated()) { _msgList.Add(string.Format("Failed Authentication for {0}",_username)); return; }
-            if (!SuccessfullyHydratedDataTable()) { _msgList.Add(string.Format("Failed To Read Excel {0}",_fileName)); return; }
+            if (!SuccessfullyHydratedDataTable()) { _msgList.Add(string.Format("Failed To Read Excel {0}",_fqFileName)); return; }
             WriteDataTableToScreen();
             if (!SuccessfullyWrittenToQuickBase()) { _msgList.Add(string.Format("Failed To Write to QuickBase TableID {0}",_tableId)); return; }
             // All OK
@@ -134,19 +139,39 @@ namespace ReadExcelProject
                                 AppFeatures.EventViewer | 
                                 AppFeatures.ConsoleOutput | 
                                 AppFeatures.WriteToLogFile;
-
+            
+            LoadFromSettings();
             ProcessCommandLineArguments(args);
 
             WriteToConsole(new List<string> {"Run started ..." });
             _stopWatch.Start();
         }
 
+        private void LoadFromSettings()
+        {
+            _appToken = Properties.Settings.Default.AppToken;
+            _tableId = Properties.Settings.Default.TableId;
+            _fileName = Properties.Settings.Default.FileName;
+            _username = Properties.Settings.Default.UserName;
+            _password = Properties.Settings.Default.Password;
+            _baseUrl = Properties.Settings.Default.BaseUrl;
+            _fromEmail = Properties.Settings.Default.FromEmail;
+            _fromPwd = Properties.Settings.Default.FromPassword;
+            _toEmail = Properties.Settings.Default.ToEmail;
+            
+        }
+
         private void ProcessCommandLineArguments(string[] args)
         {
             string tmp;
-            if (!string.IsNullOrEmpty(tmp=args.SingleOrDefault(arg => arg.StartsWith("-u:")))) { _username = tmp.Replace("-u:", ""); }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-b:")))) { _baseUrl = tmp.Replace("-b:", ""); }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-u:")))) { _username = tmp.Replace("-u:", ""); }
             if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-p:")))) { _password = tmp.Replace("-p:", ""); }
-            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-t:")))) { _toEmail = tmp.Replace("-t:", ""); }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-f:")))) { _fileName = tmp.Replace("-f:", ""); }            
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-t:")))) { _tableId = tmp.Replace("-t:", ""); }
+            if (!string.IsNullOrEmpty(tmp = args.SingleOrDefault(arg => arg.StartsWith("-e:")))) { _toEmail = tmp.Replace("-e:", ""); }
+
+            _fqFileName = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory) + "\\" + _fileName;
         }
 
         private void EndHouseKeeping()
@@ -179,6 +204,12 @@ namespace ReadExcelProject
             return !ParseResult(result, "ticket", out _authTicket);            
         }
 
+        /// <summary>
+        /// The order and number of excel columns must match the order and number of fields in the quickbase table (ignore the 6 built-in ones)
+        /// If not then, you will need to use the clist
+        /// https://www.quickbase.com/api-guide/index.html#importfromcsv.html%3FTocPath%3DQuickBase%2520API%2520Call%2520Reference%7C_____51
+        /// </summary>
+        /// <returns></returns>
         private bool SuccessfullyWrittenToQuickBase()
         {
             StringBuilder sb = new StringBuilder();
@@ -191,13 +222,11 @@ namespace ReadExcelProject
                                     @"]]>";
             if ((_enabledFeatures & AppFeatures.HttpPostPayload) == AppFeatures.HttpPostPayload) { WriteToConsole( new List<string> { csv_values }); }
             
-            
-            // When you are adding records to quickbase, clist is optional....So, if I comment it out, it still works    
-            string clist = "6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23.24.25.26.27.28.29.30.31.32.33.34.35.36.37";
+            //string clist = "6.7.8.9.10.11.12.13.14.15.16.17.18.19.20.21.22.23.24.25.26.27.28.29.30.31.32.33.34.35.36.37";
 
             string result = CallApiParams(_baseUrl + _tableId, "API_ImportFromCSV", _authTicket, _appToken,
                         "records_csv", csv_values,
-                        "clist", clist,
+              //         "clist", clist,
                         "skipfirst", 0);
 
             string errcode;
@@ -267,7 +296,7 @@ namespace ReadExcelProject
             {
                 using (ExcelPackage pck = new ExcelPackage())
                 {
-                    using (var stream = File.OpenRead(_fileName))
+                    using (var stream = File.OpenRead(_fqFileName))
                     {
                         pck.Load(stream);
                     }
